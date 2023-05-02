@@ -9,7 +9,7 @@ function App() {
         <main>
           <ul>
             {sampleProduct.map((product) => (
-              <li>
+              <li key={product.slug}>
                 <img
                   src={product.images}
                   alt={product.name}
