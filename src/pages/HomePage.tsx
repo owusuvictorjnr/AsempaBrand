@@ -1,6 +1,4 @@
 import { Row, Col } from 'react-bootstrap';
-import { sampleProduct } from '../data';
-import { Link } from 'react-router-dom';
 import { Product } from '../types/Product';
 import React, { useEffect, useReducer } from 'react';
 import { getError } from '../utils';
@@ -8,6 +6,8 @@ import axios from 'axios';
 import { ApiError } from '../types/ApiError';
 import LoadingBox from '../components/LoadingBox';
 import MessageBox from '../components/MessageBox';
+import ProductItem from '../components/ProductItem';
+import { Helmet } from 'react-helmet-async';
 
 type State = {
   products: Product[];
@@ -72,17 +72,12 @@ export default function HomePage() {
     <MessageBox variant="danger">{error}</MessageBox>
   ) : (
     <Row>
-      {sampleProduct.map((product) => (
-        <Col key={product.slug} sm={6} md="4" lg="3">
-          <Link to={'/product/' + product.slug}>
-            <img
-              src={product.images}
-              alt={product.name}
-              className="product-image"
-            />
-            <h2>{product.name}</h2>
-            <p>&#8373;{product.price}</p>
-          </Link>
+      <Helmet>
+        <title>Asempa Brand</title>
+      </Helmet>
+      {products.map((product) => (
+        <Col key={product.slug} sm={6} md={4} lg={3}>
+          <ProductItem product={product} />
         </Col>
       ))}
     </Row>
