@@ -7,13 +7,14 @@ import {
   RouterProvider,
 } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
-import 'bootstrap/dist/css/bootstrap.min.css';
+// import 'bootstrap/dist/css/bootstrap.min.css';
 import App from './App';
 import './index.css';
 import HomePage from './pages/HomePage';
 import ProductPage from './pages/ProductPage';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { StoreProvider } from './Store';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -29,12 +30,14 @@ const router = createBrowserRouter(
 const queryClient = new QueryClient();
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <React.StrictMode> 
-    <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-        <ReactQueryDevtools initialIsOpen={false} />
-      </QueryClientProvider>
-    </HelmetProvider>
+  <React.StrictMode>
+    <StoreProvider>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <RouterProvider router={router} />
+          <ReactQueryDevtools initialIsOpen={false} />
+        </QueryClientProvider>
+      </HelmetProvider>
+    </StoreProvider>
   </React.StrictMode>
 );
