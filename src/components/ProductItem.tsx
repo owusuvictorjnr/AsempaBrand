@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Store } from '../Store';
 import { CartItem } from '../types/Cart';
 import { Product } from '../types/Product';
+import { toast } from 'react-toastify';
 import { convertProductToCartItem } from '../utils';
 import Rating from './Rating';
 
@@ -25,6 +26,7 @@ function ProductItem({ product }: { product: Product }) {
       type: 'CART_ADD_ITEM',
       payload: { ...item, quantity },
     });
+    toast.success('Product added successfully');
   };
   return (
     <Card>
