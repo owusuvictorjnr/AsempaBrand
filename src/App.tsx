@@ -1,5 +1,12 @@
 import { useContext, useEffect } from 'react';
-import { Navbar, Container, Nav, Button, Badge } from 'react-bootstrap';
+import {
+  Navbar,
+  Container,
+  Nav,
+  Button,
+  Badge,
+  NavDropdown,
+} from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { Outlet } from 'react-router-dom';
 import { LinkContainer } from 'react-router-bootstrap';
@@ -9,7 +16,7 @@ import { Store } from './Store';
 
 function App() {
   const {
-    state: { mode, cart },
+    state: { mode, cart, userInfo },
     dispatch,
   } = useContext(Store);
 
@@ -21,6 +28,15 @@ function App() {
     dispatch({ type: 'SWITCH_MODE' });
   };
 
+  const signoutHandler = () => {
+    dispatch({ type: 'USER_SIGNOUT' });
+    localStorage.removeItem('userInfo');
+    localStorage.removeItem('cartItems');
+    localStorage.removeItem('shippingAddress');
+    localStorage.removeItem('paymentMethods');
+    window.location.href = '/signin';
+  };
+
   return (
     <>
       <div className="d-flex flex-column vh-100">
@@ -29,7 +45,7 @@ function App() {
           <Navbar bg="dark" variant="dark" expand="lg">
             <Container>
               <LinkContainer to="/">
-                <Navbar.Brand>asempaBrand</Navbar.Brand>
+                <Navbar.Brand>Asempa Brand</Navbar.Brand>
               </LinkContainer>
             </Container>
 
@@ -37,7 +53,6 @@ function App() {
               <Button variant={mode} onClick={switchModeHandler}>
                 <i className={mode === 'light' ? 'fa fa-sun' : 'fa fa-moon'} />
               </Button>
-
               <Link to="/cart" className="nav-link">
                 Cart
                 {cart.cartItems.length > 0 && (
@@ -46,9 +61,21 @@ function App() {
                   </Badge>
                 )}
               </Link>
-              <a href="/signin" className="nav-link">
-                Sign in
-              </a>
+              {userInfo ? (
+                <NavDropdown title={userInfo.name} id="basic-nav-dropdown">
+                  <Link
+                    className="dropdown-item"
+                    to="#signout"
+                    onClick={signoutHandler}
+                  >
+                    Sign Out
+                  </Link>
+                </NavDropdown>
+              ) : (
+                <Link className="nav-link" to="/signin">
+                  Sign In
+                </Link>
+              )}
             </Nav>
           </Navbar>
         </header>
