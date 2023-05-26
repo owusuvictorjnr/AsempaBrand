@@ -49,7 +49,7 @@ export default function PlaceOrderPage() {
   };
 
   useEffect(() => {
-    if (cart.paymentMethod) {
+    if (!cart.paymentMethod) {
       navigate('/payment');
     }
   }, [cart, navigate]);
@@ -67,10 +67,10 @@ export default function PlaceOrderPage() {
             <Card.Body>
               <Card.Title>Shipping</Card.Title>
               <Card.Text>
-                <strong>Name:</strong>
+                <strong>Name: </strong>
                 {cart.shippingAddress.fullName}
                 <br />
-                <strong>Address:</strong>
+                <strong>Address: </strong>
                 {cart.shippingAddress.address},{cart.shippingAddress.city},{' '}
                 {cart.shippingAddress.postalCode},{' '}
                 {cart.shippingAddress.country}
@@ -83,7 +83,7 @@ export default function PlaceOrderPage() {
             <Card.Body>
               <Card.Title>Payment</Card.Title>
               <Card.Text>
-                <strong>Method:</strong>
+                <strong>Method: </strong>
                 {cart.paymentMethod}
               </Card.Text>
               <Link to="/payment">Edit</Link>
