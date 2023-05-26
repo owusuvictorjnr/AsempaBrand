@@ -12,11 +12,13 @@ export default function ShippingAddressPage() {
     userInfo,
     cart: { shippingAddress },
   } = state;
+
   useEffect(() => {
     if (!userInfo) {
       navigate('/signin?redirect=/shipping');
     }
   }, [userInfo, navigate]);
+
   const [fullName, setFullName] = useState(shippingAddress.fullName || '');
   const [address, setAddress] = useState(shippingAddress.address || '');
   const [city, setCity] = useState(shippingAddress.city || '');
@@ -49,7 +51,7 @@ export default function ShippingAddressPage() {
       <Helmet>
         <title>Shipping Address</title>
       </Helmet>
-      <CheckoutSteps step1 step2 />
+      <CheckoutSteps step1 step2></CheckoutSteps>
       <div className="container small-container">
         <h1 className="my-3">Shipping Address</h1>
         <Form onSubmit={submitHandler}>
