@@ -1,17 +1,29 @@
-import { useContext } from 'react';
-import { Card, Col, ListGroup, Row } from 'react-bootstrap';
+import { useContext, useEffect } from 'react';
+import { Button, Card, Col, ListGroup, Row } from 'react-bootstrap';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import {
+  SCRIPT_LOADING_STATE,
+  usePayPalScriptReducer,
+  PayPalButtons,
+  PayPalButtonsComponentProps,
+} from '@paypal/react-paypal-js';
 import LoadingBox from '../components/LoadingBox';
 import MessageBox from '../components/MessageBox';
-import { useGetOrderDetailsQuery } from '../hooks/orderHooks';
+import {
+  useGetOrderDetailsQuery,
+  useGetPaypalClientIdQuery,
+  usePayOrderMutation,
+} from '../hooks/orderHooks';
 import { Store } from '../Store';
 import { ApiError } from '../types/ApiError';
 import { getError } from '../utils';
 
 export default function OrderPage() {
   const { state } = useContext(Store);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { userInfo } = state;
 
   const params = useParams();
@@ -22,7 +34,79 @@ export default function OrderPage() {
     isLoading,
     error,
     refetch,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   } = useGetOrderDetailsQuery(orderId!);
+
+  const { mutateAsync: payOrder, isLoading: loadingPay } =
+    usePayOrderMutation();
+
+  const testPayHandler = async () => {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    await payOrder({ orderId: orderId! });
+    refetch();
+    toast.success('Order is paid');
+  };
+
+  const [{ isPending, isRejected }, paypalDispatch] = usePayPalScriptReducer();
+
+  const { data: paypalConfig } = useGetPaypalClientIdQuery();
+
+  useEffect(() => {
+    if (paypalConfig && paypalConfig.clientId) {
+      const loadPaypalScript = async () => {
+        paypalDispatch({
+          type: 'resetOptions',
+          value: {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            'client-id': paypalConfig!.clientId,
+            currency: 'USD',
+          },
+        });
+        paypalDispatch({
+          type: 'setLoadingStatus',
+          value: SCRIPT_LOADING_STATE.PENDING,
+        });
+      };
+      loadPaypalScript();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paypalConfig]);
+
+  const paypalbuttonTransactionProps: PayPalButtonsComponentProps = {
+    style: { layout: 'vertical' },
+    createOrder(data, actions) {
+      return actions.order
+        .create({
+          purchase_units: [
+            {
+              amount: {
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                value: order!.totalPrice.toString(),
+              },
+            },
+          ],
+        })
+        .then((orderID: string) => {
+          return orderID;
+        });
+    },
+    onApprove(data, actions) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return actions.order!.capture().then(async (details) => {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          await payOrder({ orderId: orderId!, ...details });
+          refetch();
+          toast.success('Order is paid successfully');
+        } catch (err) {
+          toast.error(getError(err as ApiError));
+        }
+      });
+    },
+    onError: (err) => {
+      toast.error(getError(err as ApiError));
+    },
+  };
 
   return isLoading ? (
     <LoadingBox />
@@ -137,6 +221,24 @@ export default function OrderPage() {
                     </Col>
                   </Row>
                 </ListGroup.Item>
+
+                {!order.isPaid && (
+                  <ListGroup.Item>
+                    {isPending ? (
+                      <LoadingBox />
+                    ) : isRejected ? (
+                      <MessageBox variant="danger">
+                        Error in connecting to Paypal
+                      </MessageBox>
+                    ) : (
+                      <div>
+                        <PayPalButtons {...paypalbuttonTransactionProps} />
+                        <Button onClick={testPayHandler}>Test Pay</Button>
+                      </div>
+                    )}
+                    {loadingPay && <LoadingBox />}
+                  </ListGroup.Item>
+                )}
               </ListGroup>
             </Card.Body>
           </Card>
